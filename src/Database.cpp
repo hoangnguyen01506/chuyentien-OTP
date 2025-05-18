@@ -27,6 +27,7 @@ bool Database::connect(const string& filename) {
 bool Database::createUserTable() {
     string sql = "CREATE TABLE IF NOT EXISTS USERS(" \
                  "ID INTEGER PRIMARY KEY AUTOINCREMENT, " \
+                 "FULLNAME TEXT NOT NULL, " \
                  "USERNAME TEXT NOT NULL UNIQUE, " \
                  "PASSWORD TEXT NOT NULL, " \
                  "EMAIL TEXT, " \
@@ -40,6 +41,7 @@ bool Database::createUserTable() {
     }
     return true;
 }
+
 
 bool Database::userExists(const string& username) {
     string sql = "SELECT 1 FROM USERS WHERE USERNAME = ? LIMIT 1;";
@@ -67,8 +69,8 @@ bool Database::userExists(const string& username) {
 }
 
 
-bool Database::insertUser(const string& username, const string& hashedPassword, bool isAuto, const string& email) {
-    string sql = "INSERT INTO USERS (USERNAME, PASSWORD, IS_AUTO, EMAIL) VALUES (?, ?, ?, ?);";
+bool Database::insertUser(const string& username, const string& hashedPassword, bool isAuto, const string& email, const string& fullname) {
+    string sql = "INSERT INTO USERS (FULLNAME, USERNAME, PASSWORD, IS_AUTO, EMAIL) VALUES (?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
@@ -76,10 +78,11 @@ bool Database::insertUser(const string& username, const string& hashedPassword, 
         return false;
     }
 
-    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, hashedPassword.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 3, isAuto ? 1 : 0);
-    sqlite3_bind_text(stmt, 4, email.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, fullname.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 3, hashedPassword.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 4, isAuto ? 1 : 0);
+    sqlite3_bind_text(stmt, 5, email.c_str(), -1, SQLITE_STATIC);
 
     if (sqlite3_step(stmt) != SQLITE_DONE) {
         cerr << "SQLite step error: " << sqlite3_errmsg(db) << endl;
@@ -89,21 +92,9 @@ bool Database::insertUser(const string& username, const string& hashedPassword, 
 
     sqlite3_finalize(stmt);
 
-    // Kiểm tra dữ liệu sau khi chèn
-    sql = "SELECT EMAIL FROM USERS WHERE USERNAME = ?;";
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
-        if (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char* storedEmail = sqlite3_column_text(stmt, 0);
-            cout << "Stored email for " << username << ": " << (storedEmail ? reinterpret_cast<const char*>(storedEmail) : "NULL") << endl;
-        } else {
-            cerr << "Failed to retrieve email for " << username << endl;
-        }
-        sqlite3_finalize(stmt);
-    }
-
     return true;
 }
+
 
 
 
