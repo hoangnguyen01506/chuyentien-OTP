@@ -94,10 +94,14 @@ void showTransactionMenu() {
     cout << "[1] Change Password\n";
     cout << "[2] Transfer Money\n";
     cout << "[3] View Balance\n";
-    cout << "[4] Logout" << endl;
-    cout << "Select [1] / [2] / [3] / [4]: ";
+    cout << "[4] View Transaction History\n";
+    cout << "[5] Logout\n";
+    cout << "Select [1] / [2] / [3] / [4] / [5]: ";
     cout << "\033[0m";
 }
+#include <iostream>
+#include <vector>
+#include <tuple>
 
 char getMenuChoice() {
     return _getch();

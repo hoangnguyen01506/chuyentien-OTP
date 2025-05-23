@@ -57,7 +57,11 @@ int main() {
         showMessage("Failed to create ViTien table.");
         return 1;
     }
-
+    if (!db.createTransactionHistoryTable())
+    {
+        showMessage("Failed to create TransactionHistoryTable.");
+        return 1;
+    }
     while (true) {
         showMenu();
         char choice = getMenuChoice();
@@ -223,7 +227,18 @@ int main() {
                 cout << "\033[0m";
                 system("pause");
                 system("cls");
-            } else if (transactionChoice == '4') {
+            } 
+            else if (transactionChoice == '4'){
+                auto history = db.getTransactionHistory(currentUsername);
+                std::cout << "=== Lịch sử giao dịch của " << currentUsername << " ===\n";
+                std::cout << "Thời gian          | Loại giao dịch | Số tiền   | Đối tác\n";
+                std::cout << "----------------------------------------------------------\n";
+                for (const auto& [datetime, type, amount, partner] : history) {
+                std::cout << datetime << " | " << type << " | " << amount << " VND | " << partner << '\n';
+                }
+                system("pause");
+                system("cls");
+            }else if (transactionChoice == '5') {
                 // LOGOUT
                 currentUsername = "";
                 showMessage(">> LOGGED OUT <<");

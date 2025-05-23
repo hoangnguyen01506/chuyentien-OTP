@@ -3,7 +3,8 @@
 
 #include <string>
 #include "../sql/sqlite3.h"
-
+#include <vector>
+#include<tuple>
 class Database {
 private:
     sqlite3* db;
@@ -28,7 +29,9 @@ public:
     bool showBalance(const std::string& username);
     bool createWalletForUser(const std::string& username);
     double getBalance(const std::string& username);
-
+    bool addTransaction(const std::string& username, const std::string& type, double amount, const std::string& partner);
+    std::vector<std::tuple<std::string, std::string, double, std::string>> getTransactionHistory(const std::string& username);
+    bool createTransactionHistoryTable();
 };
 
 #endif

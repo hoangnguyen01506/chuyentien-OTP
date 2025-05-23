@@ -80,7 +80,7 @@ std::string createOTP(const std::string& to) {
     res = curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     if (res != CURLE_OK) std::cerr << "Lỗi CURLOPT_USE_SSL: " << curl_easy_strerror(res) << std::endl;
 
-    res = curl_easy_setopt(curl, CURLOPT_CAINFO, "C:/coder/AccountMoney/Bai_tap_lon/cacert.pem");
+    res = curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
 
     if (res != CURLE_OK) std::cerr << "Lỗi CURLOPT_CAINFO: " << curl_easy_strerror(res) << std::endl;
 

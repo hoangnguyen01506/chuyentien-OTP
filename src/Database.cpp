@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 
+
 using namespace std;
 
 Database::Database() : db(nullptr) {}
@@ -71,7 +72,18 @@ bool Database::createViTienTable() {
     );)";
     return execute(sql);
 }
-
+bool Database::createTransactionHistoryTable() {
+    const char* sql =
+    "CREATE TABLE IF NOT EXISTS TransactionHistory ("
+    "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+    "username TEXT,"
+    "type TEXT,"
+    "amount REAL,"
+    "partner TEXT,"
+    "datetime TEXT"
+    ");";
+    return execute(sql);
+}
 bool Database::initViTien() {
     return createViTienTable();
 }
@@ -204,6 +216,8 @@ bool Database::transferMoney(const std::string& fromUser, const std::string& toU
     sqlite3_finalize(stmtUpdateTo);
 
     std::cout << "[SUCCESS] Đã chuyển " << amount << " từ " << fromUser << " đến " << toUser << std::endl;
+    addTransaction(fromUser, "Transfer Out", amount, toUser);
+    addTransaction(toUser, "Transfer In", amount, fromUser);
     return true;
 }
 
@@ -277,4 +291,32 @@ bool Database::updatePassword(const string& username, const string& newHashedPas
 
 sqlite3* Database::getDB() {
     return db;
+}
+bool Database::addTransaction(const string& username, const string& type, double amount, const string& partner) {
+    time_t now = time(nullptr);
+    char buf[20];
+    strftime(buf, sizeof(buf), "%Y-%m-%d %H:%M:%S", localtime(&now));
+
+    string sql = "INSERT INTO TransactionHistory (username, type, amount, partner, datetime) VALUES ('" + 
+                 username + "', '" + type + "', " + to_string(amount) + ", '" + partner + "', '" + buf + "');";
+
+    return execute(sql);
+}
+
+vector<tuple<string, string, double, string>> Database::getTransactionHistory(const string& username) {
+    vector<tuple<string, string, double, string>> history;
+    string sql = "SELECT datetime, type, amount, partner FROM TransactionHistory WHERE username='" + username + "' ORDER BY datetime DESC LIMIT 20;";
+
+    sqlite3_stmt* stmt;
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            string datetime = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+            string type = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+            double amount = sqlite3_column_double(stmt, 2);
+            string partner = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
+            history.emplace_back(datetime, type, amount, partner);
+        }
+    }
+    sqlite3_finalize(stmt);
+    return history;
 }
