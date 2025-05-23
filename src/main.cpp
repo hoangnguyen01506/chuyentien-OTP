@@ -1,18 +1,60 @@
 #include "../include/ui.h"
 #include "../include/user.h"
 #include "../include/database.h"
-#include <cstdlib>
-#include <iostream>
-#include "A:/TC++/WORKING/otp/otp.h"    //đường dẫn đến otp.h
+#include "../otp/otp.h"
+#include <windows.h>
+#include <bits/stdc++.h>
+
 using namespace std;
 
+// Kích hoạt chế độ màu ANSI cho Windows console
+void enableVirtualTerminal() {
+    HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+    DWORD dwMode = 0;
+    GetConsoleMode(hOut, &dwMode);
+    dwMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+    SetConsoleMode(hOut, dwMode);
+}
+
+// Xác minh OTP và tạo ví
+bool verifyOTPAndRegister(User& user, Database& db, const string& email, const string& username) {
+    string otp = createOTP(email);
+    if (otp.empty()) {
+        cerr << "Unable to generate or send OTP." << endl;
+        return false;
+    }
+
+    while (true) {
+        string user_input;
+        cout << "Enter the OTP code you received: ";
+        getline(cin, user_input);
+        if (user_input == otp) {
+            cout << "Verification successful!" << endl;
+            user.registerToDB(db);
+            if (db.createWalletForUser(username)) {
+                cout << "Wallet created.\n";
+            } else {
+                cerr << "Failed to create wallet.\n";
+            }
+            return true;
+        } else {
+            system("cls");
+            cout << "Verification failed. Incorrect OTP. Please try again." << endl;
+        }
+    }
+}
+
 int main() {
+    enableVirtualTerminal();
     Database db;
     string currentUsername;
 
-    // Kết nối và tạo database
     if (!db.connect("data/users.db")) {
         showMessage("Failed to create or open database.");
+        return 1;
+    }
+    if (!db.createViTienTable()) {
+        showMessage("Failed to create ViTien table.");
         return 1;
     }
 
@@ -21,188 +63,174 @@ int main() {
         char choice = getMenuChoice();
         system("cls");
 
-        if (choice == '1') {  // LOGIN
+        if (choice == '1') {
             while (true) {
                 showLoginScreen();
-                string username = getInput("Please enter your username: ");
-                string password = getInput("Please enter your password: ");
+                string username = getInput("Enter your username: ");
+                string password = getInput("Enter your password: ");
 
                 User tempUser("", "", false);
                 if (tempUser.loginFromDB(db, username, password)) {
-                    
-                currentUsername = username; // Lưu username để sử dụng trong TransactionMenu // PHẦN NÀY ĐỂ CÁ NHÂN HÓA HỆ THỐNG CHO MỖI USER
-
-                    showMessage(">> SUCCESSFULLY LOGIN <<");
-                    /*
-                        DEVELOPING...
-                        MOVE TO THE MAIN TRANSACTION MENU IN HERE;
-                    */
-                    system("pause");
-                    system("cls");
-                    break;  // Thoát vòng lặp đăng nhập
-                } else {
-                    showMessage(">> LOGIN FAILED. Please try again.\n");
-                    system("pause");
-                    system("cls");
-                }
-            }
-
-        } else if (choice == '2') {  // REGISTER
-            while (true) {
-                showRegisterScreen();
-                string username = getInput("Please enter your username: ");
-                string password = getInput("Please enter your password: ");
-                string email = getInput("Please enter your email: ");
-                string name = getInput("Please enter your name: ");
-
-                User newUser(username, password, false, email, name);
-                if (newUser.validateNewUser(db)) {
-
-                        string otp = createOTP(email);       //tạo OTP
-                        if (otp.empty()) {
-                            cerr << "Không thể tạo hoặc gửi OTP." << endl;      //flag kiểm tra mã OTP luôn được gửi
-                        }
-                    while (true) {    
-                        string user_input;
-                        cout << "Nhập mã OTP bạn nhận được: ";
-                        getline(cin, user_input);
-
-                        if (user_input == otp) {
-                            cout << "Xác thực thành công!" << endl;
-                            newUser.registerToDB(db);
-                            break;
-                        } else {
-                            system("cls");
-                            cout << "Xác thực thất bại. Mã OTP không đúng. Vui lòng nhập lại." << endl;     //có bug khi gửi email không thành công thì otp thành chuỗi rỗng
-                        }
-                    }
-                    
-                    showMessage(">>> SUCCESSFULLY CREATED ACCOUNT <<<");
+                    currentUsername = username;
+                    showMessage(">> LOGIN SUCCESSFUL <<");
+                    db.showBalance(currentUsername);
                     system("pause");
                     system("cls");
                     break;
                 } else {
-                    showMessage("Invalid input or username exists!\n");
+                    showMessage(">> LOGIN FAILED. Please try again.");
                     system("pause");
                     system("cls");
                 }
             }
+        } else if (choice == '2') {
+            while (true) {
+                showRegisterScreen();
+                string username = getInput("Enter a username: ");
+                string password = getInput("Enter a password: ");
+                string email = getInput("Enter your email: ");
+                string name = getInput("Enter your full name: ");
 
-                        //ĐĂNG KÝ XONG CẦN YÊU CẦU NGƯỜI DÙNG ĐĂNG NHẬP LẠI (LỖI NẾU VÔ LUÔN GIAO DIỆN TRỰC TIẾP SAU ĐĂNG KÝ)
-
-        } else if (choice == '3') {  // REGISTER FOR MANAGER
+                User newUser(username, password, false, email, name);
+                if (newUser.validateNewUser(db)) {
+                    if (verifyOTPAndRegister(newUser, db, email, username)) {
+                        showMessage(">>> ACCOUNT CREATED SUCCESSFULLY <<<");
+                        system("pause");
+                        system("cls");
+                        break;
+                    }
+                } else {
+                    showMessage("Invalid input or username already exists.");
+                    system("pause");
+                    system("cls");
+                }
+            }
+        } else if (choice == '3') {
             showRegisterScreenForMnger();
-
             while (true) {
                 string adminPassword = getInput("Enter admin password: ");
                 if (adminPassword == "admin123") {
                     system("cls");
                     break;
                 } else {
-                    showMessage("WRONG PASSWORD\n");
+                    showMessage("WRONG ADMIN PASSWORD.");
                     system("pause");
                     system("cls");
                 }
             }
 
-            string username = getInput("Please enter your username: ");
-            string email = getInput("Please enter your email: ");               // LỖI CHƯA THÊM EMAIL NGƯỜI DÙNG VÀO BẢNG 
+            string username = getInput("Enter username: ");
+            string email = getInput("Enter email: ");
             string autoPassword = User::AutoGenerated();
-
             User newUser(username, autoPassword, true);
+
             if (newUser.validateNewUser(db)) {
-
-                string otp = createOTP(email);       //tạo OTP
-                        if (otp.empty()) {
-                            cerr << "Không thể tạo hoặc gửi OTP." << endl;      //flag kiểm tra mã OTP luôn được gửi
-                        }
-                    while (true) {    
-                        string user_input;
-                        cout << "Nhập mã OTP bạn nhận được: ";
-                        getline(cin, user_input);
-
-                        if (user_input == otp) {
-                            cout << "Xác thực thành công!" << endl;
-                            newUser.registerToDB(db);
-                            break;
-                        } else {
-                            system("cls");
-                            cout << "Xác thực thất bại. Mã OTP không đúng. Vui lòng nhập lại." << endl;
-                        }
-                    }
-
-                showMessage("User created! Auto-generated password: " + autoPassword);
-                system("pause");
-                system("cls");
+                if (verifyOTPAndRegister(newUser, db, email, username)) {
+                    showMessage("Manager created! Auto password: " + autoPassword);
+                    system("pause");
+                    system("cls");
+                }
             } else {
-                showMessage("Invalid input or username exists!\n");
+                showMessage("Invalid input or username already exists.");
                 system("pause");
                 system("cls");
             }
         }
-    break;
-    }
 
+        while (!currentUsername.empty()) {
+            showTransactionMenu();
+            char transactionChoice = getMenuChoice();
+            system("cls");
 
-    //CHỨC NĂNG HIỆN TẠI CHỈ CHẠY ĐƯỢC CHO TÀI KHOẢN TẠO TỪ CHOICE 2, CHOICE 3 ĐANG FIX
-    while (true) {
-    showTransactionMenu();
-        char transactionChoice = getMenuChoice();
-        system("cls");
+            if (transactionChoice == '1') {
+                // CHANGE PASSWORD
+                showChanginPassScreen();
+                while (true) {
+                    string currentPassword = getInput("Enter current password: ");
+                    User tempUser("", "", false);
 
-        if (transactionChoice == '1') {
-            showChanginPassScreen();
-            while (true) {
-
-                string currentPassword = getInput("Please enter your current password: ");
-                User tempUser("", "", false);
-
-                if (tempUser.loginFromDB(db, currentUsername, currentPassword)){  //đăng nhập lại để xác nhận người dùng
-                    
-                    // Lấy email từ cơ sở dữ liệu
-                    string userEmail = tempUser.getUserEmail(db, currentUsername);
-                    if (userEmail.empty()) {
-                        showMessage("No email found for this user. Cannot send OTP.\n");
-                        system("pause");
-                        system("cls");
-                        continue;
-                    }
-
-                    string otp = createOTP(userEmail);       //tạo OTP
-                        if (otp.empty()) {
-                            cerr << "Không thể tạo hoặc gửi OTP." << endl;      //flag kiểm tra mã OTP luôn được gửi
+                    if (tempUser.loginFromDB(db, currentUsername, currentPassword)) {
+                        string userEmail = tempUser.getUserEmail(db, currentUsername);
+                        if (userEmail.empty()) {
+                            showMessage("Email not found for this account. Cannot send OTP.");
+                            system("pause");
+                            system("cls");
+                            continue;
                         }
-                    while (true) {
-                        string user_input;
-                        cout << "Nhập mã OTP bạn nhận được: ";
-                        getline(cin, user_input);
 
-                        if (user_input == otp) {
-                            cout << "Xác thực thành công!" << endl;
+                        string otp = createOTP(userEmail);
+                        if (otp.empty()) {
+                            cerr << "Unable to generate or send OTP." << endl;
+                            continue;
+                        }
+
+                        while (true) {
+                            string user_input;
+                            cout << "Enter the OTP you received: ";
+                            getline(cin, user_input);
+                            if (user_input == otp) {
+                                cout << "Verification successful!" << endl;
+                                break;
+                            } else {
+                                system("cls");
+                                cout << "Incorrect OTP. Please try again." << endl;
+                            }
+                        }
+
+                        string newpassword = getInput("Enter new password: ");
+                        User user(currentUsername, newpassword, false);
+                        if (user.changePassword(db, newpassword)) {
+                            showMessage(">> PASSWORD CHANGED SUCCESSFULLY <<");
+                            system("pause");
+                            system("cls");
                             break;
                         } else {
+                            showMessage("Failed to change password.");
+                            system("pause");
                             system("cls");
-                            cout << "Xác thực thất bại. Mã OTP không đúng. Vui lòng nhập lại." << endl;
                         }
-                    }
-
-                    // đổi mk
-                    string newpassword = getInput("Please enter your new password: ");
-                    User user(currentUsername, newpassword, false);
-                    if (user.changePassword(db, newpassword)) {
-                        showMessage(">> PASSWORD CHANGED <<");
-                        system("pause");
-                        system("cls");
-                        break;
                     } else {
-                        showMessage("Failed to change password.\n");
+                        showMessage("Wrong password.");
                         system("pause");
                         system("cls");
                     }
-                } else {
-                    showMessage("wrong password");
                 }
-            }    
+            } else if (transactionChoice == '2') {
+                // TRANSFER MONEY
+                showMessage(">> TRANSFER MONEY <<");
+                string receiver = getInput("Enter recipient's username: ");
+                double amount = stod(getInput("Enter amount to transfer: "));
+
+                if (db.transferMoney(currentUsername, receiver, amount)) {
+                    showMessage(">> TRANSFER SUCCESSFUL <<");
+                } else {
+                    showMessage(">> TRANSFER FAILED <<");
+                }
+
+                system("pause");
+                system("cls");
+            } else if (transactionChoice == '3') {
+                // VIEW BALANCE
+                double balance = db.getBalance(currentUsername);
+                string formatted = formatCurrency(balance);
+
+                printHeader("ACCOUNT BALANCE");
+                cout << "\033[1;32m";
+                cout << "\n   Your current balance is:\n\n";
+                cout << "   ╔═══════════════════════════════════════╗\n";
+                cout << "   ║     " << setw(20) << right << formatted << "     ║\n";
+                cout << "   ╚═══════════════════════════════════════╝\n";
+                cout << "\033[0m";
+                system("pause");
+                system("cls");
+            } else if (transactionChoice == '4') {
+                // LOGOUT
+                currentUsername = "";
+                showMessage(">> LOGGED OUT <<");
+                system("pause");
+                system("cls");
+                break;
+            }
         }
     }
     return 0;

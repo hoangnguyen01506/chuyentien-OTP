@@ -12,4 +12,7 @@ void showRegisterScreenForMnger();
 void showChangePasswordScreen();
 void showTransactionMenu();
 void showChanginPassScreen();
+void printHeader(const std::string& title);
+std::string formatCurrency(double amount);
+
 #endif

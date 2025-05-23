@@ -4,7 +4,7 @@
         {
             "type": "cppbuild",
             "label": "C/C++: g++.exe build active file",
-            "command": "A:\\TC++\\MSYS2\\mingw64\\bin\\g++.exe",
+            "command": "C:/msys64/ucrt64/bin/g++.exe",
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
@@ -12,7 +12,7 @@
                 "-I${workspaceFolder}/include",
                 "-I${workspaceFolder}/otp",
 
-                "-I", "A:/TC++/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include/curl/",
+                "-I", "C:/Users/zit/Desktop/curl-8.13.0_3-win64-mingw/include",
 
                 "${workspaceFolder}/src/main.cpp",
                 "${workspaceFolder}/src/user.cpp",
@@ -21,7 +21,7 @@
                 "${workspaceFolder}/otp/otp.cpp",
 
                 "-L${workspaceFolder}/sql",
-                "-L", "A:/TC++/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/lib",
+                "-L", "C:/coder/AccountMoney/Bai_tap_lon/lib(curl)",
 
                 "-lsqlite3",
                 "-lcurl",

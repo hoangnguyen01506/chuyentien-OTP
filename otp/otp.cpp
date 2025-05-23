@@ -3,7 +3,7 @@
 #include <ctime>
 #include <cstring>
 #include <cstdlib>
-#include <A:/TC++/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include/curl/curl.h>
+#include <curl/curl.h>
 #include "otp.h"
 
 // Hàm callback để đọc dữ liệu gửi qua cURL
@@ -80,7 +80,8 @@ std::string createOTP(const std::string& to) {
     res = curl_easy_setopt(curl, CURLOPT_USE_SSL, CURLUSESSL_ALL);
     if (res != CURLE_OK) std::cerr << "Lỗi CURLOPT_USE_SSL: " << curl_easy_strerror(res) << std::endl;
 
-    res = curl_easy_setopt(curl, CURLOPT_CAINFO, "A:/TC++/cacert.pem");
+    res = curl_easy_setopt(curl, CURLOPT_CAINFO, "C:/coder/AccountMoney/Bai_tap_lon/cacert.pem");
+
     if (res != CURLE_OK) std::cerr << "Lỗi CURLOPT_CAINFO: " << curl_easy_strerror(res) << std::endl;
 
     res = curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());

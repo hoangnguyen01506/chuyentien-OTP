@@ -7,10 +7,10 @@
                 "${workspaceFolder}/sql",
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/otp",
-                "A:/TC++/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include/curl/"
+                "C:/Users/zit/Desktop/curl-8.13.0_3-win64-mingw/include/curl"
             ],
             "defines": [],
-            "compilerPath": "A:/TC++/MSYS2/mingw64/bin/g++.exe",
+            "compilerPath": "C:/msys64/ucrt64/bin/g++.exe",
             "intelliSenseMode": "gcc-x64",
             "cStandard": "c17",
             "cppStandard": "gnu++17",
@@ -20,7 +20,7 @@
                     "${workspaceFolder}/sql",
                     "${workspaceFolder}/include",
                     "${workspaceFolder}/otp",
-                    "A:/TC++/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include/curl/"
+                    "C:/Users/zit/Desktop/curl-8.13.0_3-win64-mingw/include/curl"
                 ],
                 "limitSymbolsToIncludedHeaders": true
             }
