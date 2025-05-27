@@ -24,7 +24,8 @@ public:
     bool createTransactionHistoryTable();
     std::string getAccountNumber(const std::string& username);
     std::string getUsernameByAccount(const std::string& accountNumber);
-
+    std::string getUserEmail(Database& db, const std::string& username);
+    std::string getFullname(Database& db, const std::string& username);
 
 
     // User operations

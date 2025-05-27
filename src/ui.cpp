@@ -25,14 +25,15 @@ void showMenu() {
     cout << "\n[1] Login\n";
     cout << "[2] Register\n";
     cout << "[3] Manager Registration\n";
-    cout << "\nPlease select 1 / 2 / 3: ";
+    cout << "[4] Forgot Password\n";
+    cout << "\nPlease select 1 / 2 / 3 / 4: ";
     cout << "\033[0m";
 }
 
 void showTransactionMenu() {
     printHeader("TRANSACTION MENU");
     cout << "\033[1;33m";
-    cout << "[1] Change Password\n";
+    cout << "[1] Change Information\n";
     cout << "[2] Transfer Money\n";
     cout << "[3] View Balance\n";
     cout << "[4] View Transaction History\n";
@@ -111,7 +112,15 @@ void printHeader(const string& title) {
     for (int i = 0; i < totalWidth; ++i) cout << "═";
     cout << "╝\n\033[0m";
 }
-
+void showInformationMenu() {
+    printHeader("CHANGE INFORMATION MENU");
+    cout << "\033[1;33m";
+    cout << "[1] Change Password\n";
+    cout << "[2] Change Fullname\n";
+    cout << "[3] Go Back\n";
+    cout << "\nPlease select 1 / 2 / 3: ";
+    cout << "\033[0m";
+}
 void showChangeInfoMenu() {
     printHeader("CHANGE INFORMATION MENU");
     cout << "\033[1;33m";

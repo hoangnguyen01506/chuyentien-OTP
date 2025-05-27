@@ -10,7 +10,7 @@
                 "${workspaceFolder}/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include"
             ],
             "defines": [],
-            "compilerPath": "${workspaceFolder}/../MSYS2/mingw64/bin/g++.exe",
+            "compilerPath": "C:/mingw64/bin/g++.exe",
             "intelliSenseMode": "gcc-x64",
             "cStandard": "c17",
             "cppStandard": "gnu++17",

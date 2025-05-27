@@ -182,7 +182,7 @@ int main() {
                         
                         // Lấy email từ cơ sở dữ liệu
                         User tempUser ("", "", false);
-                        userEmail = tempUser.getUserEmail(db, tempUsername);
+                        userEmail = db.getUserEmail(db, tempUsername);
                         if (userEmail.empty()) {
                             showMessage("No email found for this user. Cannot send OTP.\n");
                             system("pause");
@@ -231,8 +231,9 @@ int main() {
                                 // Xác nhận gmail thành công sẽ cho user thay đổi mk vào lần đăng nhập tiếp theo
 
                                 if (db.updateIsAuto(tempUsername, 1)) {
-                                    showMessage(">> Please re-login to change password <<");
+                                    showMessage(">> Please re-login with your current password before changing to new one <<");
                                     system("pause");
+                                    system("cls");
                                     break;
                                 } else {
                                     showMessage("Failed to update IS_MANANGER");
@@ -264,15 +265,68 @@ int main() {
                 break;
             }
         }
+                if (choice == '4') {        //Quen mat khau
+                    bool done = false;
+                    while(!done){
+                    User tempUser("", "", false);
+                    string uname = getInput("Enter your username: ");
+                    string registeredEmail = db.getUserEmail(db, uname);
+                                  
+                    
+                    if (registeredEmail.empty()) {
+                            showMessage("Username does not exist!");
+                            system("pause");system("cls");break;
+                        }
 
+                        string inputEmail = getInput("Enter your registered email: ");
+                        if (inputEmail != registeredEmail) {
+                            showMessage("Email does not match our records!");
+                            system("pause");system("cls");break;
+                        }
+                        string otp = createOTP(inputEmail);       //tạo OTP
+                                if (otp.empty()) {
+                                    cerr << "Không thể tạo hoặc gửi OTP." << endl;      //flag kiểm tra mã OTP luôn được gửi
+                                }
+                            while (true) {    
+                                string user_input;
+                                cout << "Nhập mã OTP bạn nhận được: ";
+                                getline(cin, user_input);
+
+                                if (user_input == otp) {
+                                    cout << "Xác thực thành công!" << endl;
+                                    label1:
+                                    string newPass = getInput("Enter your new password: ");
+                                    if (newPass.empty()) {
+                                        showMessage("Password cannot be empty.");
+                                        system("pause"); system("cls");goto label1;
+                                    }
+                                    if (newPass.find(" ") != string::npos) {
+                                        showMessage("Password cannot contain spaces.");
+                                         system("pause");system("cls");goto label1;
+                                    }
+                                    string hashed = User::hashPassword(newPass);
+                                    if (db.updatePassword(uname, hashed)) {
+                                        showMessage("Password reset successful!");
+                                         system("pause");system("cls");done = true;break;
+                                    } else {
+                                        showMessage("Failed to reset password.");
+                                         system("pause");system("cls");done = true;break;
+                                    }
+                                }  else {
+                                    system("cls");
+                                    cout << "Xác thực thất bại. Mã OTP không đúng. Vui lòng nhập lại." << endl;
+                                }
+                            }
+                        }
+                }
         while (!currentUsername.empty()) {
-            User temp("", "", false);
-            string userEmail = temp.getUserEmail(db, currentUsername);
+            string userEmail = db.getUserEmail(db, currentUsername);
             string accNum = db.getAccountNumber(currentUsername);
+            string Fullname = db.getFullname(db,currentUsername);
 
             cout << "\033[1;36m═══════════════════════════════════════════════════════════\033[0m\n";
             cout << "\033[1;36m   🧾 ACCOUNT INFORMATION\033[0m\n";
-            cout << "   \033[1;33m👤 Fullname:    \033[0;97m" << currentUsername << "\033[0m\n";
+            cout << "   \033[1;33m👤 Fullname:    \033[0;97m" << Fullname << "\033[0m\n";
             cout << "   \033[1;33m📧 Email:       \033[0;97m" << userEmail << "\033[0m\n";
             cout << "   \033[1;33m💳 Account No.: \033[0;97m" << accNum << "\033[0m\n";
             cout << "\033[1;36m═══════════════════════════════════════════════════════════\033[0m\n\n";
@@ -282,12 +336,18 @@ int main() {
             system("cls");
 
             if (transactionChoice == '1') {
-                showChanginPassScreen();
-                while (true) {
+                while(true){
+                    showInformationMenu();
+                    char subChoice = getMenuChoice();
+                    cout << "\n";
+                if (subChoice == '1') {
+                    system("cls");
+                    showChanginPassScreen();
+                    while (true) {
                     string currentPassword = getInput("Enter current password: ");
                     User tempUser("", "", false);
                     if (tempUser.loginFromDB(db, currentUsername, currentPassword)) {
-                        string email = tempUser.getUserEmail(db, currentUsername);
+                        string email = db.getUserEmail(db, currentUsername);
                         string otp = createOTP(email);
                         string input;
                         cout << "Enter OTP: "; getline(cin, input);
@@ -300,13 +360,40 @@ int main() {
                             showMessage("Failed to change password.");                          
                         } 
                             system("cls");
+                        if (!user.changePassword(db, newpass)) {
+                            showMessage("Failed to change password.");                          
+                        } 
+                            system("cls");
                             showMessage(">> PASSWORD CHANGED SUCCESSFULLY <<");
                             system("pause");
+                            system("cls");
                             break;
-                } else {
-                    showMessage("Wrong password.");
-                }
-                    system("pause"); system("cls");
+                    } else {
+                        showMessage("Wrong password.");
+                    }
+                        system("pause"); system("cls");
+                        break;
+                    }
+                } else if (subChoice == '2') {
+                    system("cls");
+                    string newName = getInput("Enter new full name: ");
+                    User user(currentUsername, "", false);
+                    if (user.changeName(db, newName)) {
+                        showMessage(">> NAME CHANGED SUCCESSFULLY <<");
+                        system("pause");system("cls");break;
+                    } else {
+                        showMessage("Failed to change name.");
+                        system("pause");system("cls");break;
+                        }
+                    system("pause");
+                    } else if (subChoice == '3') {
+                        system("cls");
+                        break;
+                    } else {
+                        showMessage("Invalid option.");
+                        system("pause"); system("cls");
+                        break;
+                    }
                 }
             } else if (transactionChoice == '2') {
                 showMessage(">> TRANSFER MONEY <<");
@@ -316,7 +403,7 @@ int main() {
                     showMessage(">> Invalid account number <<");
                     system("pause"); system("cls"); continue;
                 }
-                string senderEmail = temp.getUserEmail(db, currentUsername);
+                string senderEmail = db.getUserEmail(db, currentUsername);
                 string otp = createOTP(senderEmail);
                 string inputOtp;
                 cout << "Enter OTP to confirm transfer: "; getline(cin, inputOtp);

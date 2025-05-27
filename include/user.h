@@ -22,7 +22,6 @@ public:
     std::string getPassword() const;
     std::string getEmail() const;
     bool IsAuto() const;
-    std::string getUserEmail(Database& db, const std::string& username);
     std::string getAccountNumber() const; // 🔹 Thêm getter cho account number
 
     // Utility

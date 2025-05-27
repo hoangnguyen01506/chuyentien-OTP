@@ -440,3 +440,39 @@ bool Database::updateName(const string& username, const string& newName) {
 
     return true;
 }
+string Database::getUserEmail(Database& db, const string& username) {
+    string sql = "SELECT EMAIL FROM USERS WHERE USERNAME = ?;";
+    sqlite3_stmt* stmt;
+    string email;
+
+    if (sqlite3_prepare_v2(db.getDB(), sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* storedEmail = sqlite3_column_text(stmt, 0);
+            email = storedEmail ? reinterpret_cast<const char*>(storedEmail) : "";
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Failed to prepare email query: " << sqlite3_errmsg(db.getDB()) << endl;
+    }
+
+    return email;
+}
+string Database::getFullname(Database& db, const string& username) {
+    string sql = "SELECT NAME FROM USERS WHERE USERNAME = ?;";
+    sqlite3_stmt* stmt;
+    string fullname;
+
+    if (sqlite3_prepare_v2(db.getDB(), sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* storedName = sqlite3_column_text(stmt, 0);
+            fullname = storedName ? reinterpret_cast<const char*>(storedName) : "";
+        }
+        sqlite3_finalize(stmt);
+    } else {
+        cerr << "Failed to prepare name query: " << sqlite3_errmsg(db.getDB()) << endl;
+    }
+
+    return fullname;
+}

@@ -78,24 +78,6 @@ bool User::changePassword(Database& db, const string& newPassword) {
     return db.updatePassword(username, hashed);
 }
 
-string User::getUserEmail(Database& db, const string& username) {
-    string sql = "SELECT EMAIL FROM USERS WHERE USERNAME = ?;";
-    sqlite3_stmt* stmt;
-    string email;
-
-    if (sqlite3_prepare_v2(db.getDB(), sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
-        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
-        if (sqlite3_step(stmt) == SQLITE_ROW) {
-            const unsigned char* storedEmail = sqlite3_column_text(stmt, 0);
-            email = storedEmail ? reinterpret_cast<const char*>(storedEmail) : "";
-        }
-        sqlite3_finalize(stmt);
-    } else {
-        cerr << "Failed to prepare email query: " << sqlite3_errmsg(db.getDB()) << endl;
-    }
-
-    return email;
-}
 
 // Hàm sinh số tài khoản ngẫu nhiên 10 chữ số
 string generateRandomAccountNumber() {
