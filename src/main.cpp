@@ -7,7 +7,6 @@
 
 using namespace std;
 
-// Kích hoạt chế độ màu ANSI cho Windows console
 void enableVirtualTerminal() {
     HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
     DWORD dwMode = 0;
@@ -16,7 +15,6 @@ void enableVirtualTerminal() {
     SetConsoleMode(hOut, dwMode);
 }
 
-// Xác minh OTP và tạo ví
 bool verifyOTPAndRegister(User& user, Database& db, const string& email, const string& username) {
     string otp = createOTP(email);
     if (otp.empty()) {
@@ -53,39 +51,31 @@ int main() {
         showMessage("Failed to create or open database.");
         return 1;
     }
-    if (!db.createViTienTable()) {
-        showMessage("Failed to create ViTien table.");
+    if (!db.createViTienTable() || !db.createTransactionHistoryTable()) {
+        showMessage("Failed to create required tables.");
         return 1;
     }
-    if (!db.createTransactionHistoryTable())
-    {
-        showMessage("Failed to create TransactionHistoryTable.");
-        return 1;
-    }
+
     while (true) {
         showMenu();
         char choice = getMenuChoice();
         system("cls");
 
         if (choice == '1') {
-            while (true) {
-                showLoginScreen();
-                string username = getInput("Enter your username: ");
-                string password = getInput("Enter your password: ");
+            showLoginScreen();
+            string username = getInput("Enter your username: ");
+            string password = getInput("Enter your password: ");
 
-                User tempUser("", "", false);
-                if (tempUser.loginFromDB(db, username, password)) {
-                    currentUsername = username;
-                    showMessage(">> LOGIN SUCCESSFUL <<");
-                    db.showBalance(currentUsername);
-                    system("pause");
-                    system("cls");
-                    break;
-                } else {
-                    showMessage(">> LOGIN FAILED. Please try again.");
-                    system("pause");
-                    system("cls");
-                }
+            User tempUser("", "", false);
+            if (tempUser.loginFromDB(db, username, password)) {
+                currentUsername = username;
+                showMessage(">> LOGIN SUCCESSFUL <<");
+                db.showBalance(currentUsername);
+                system("pause"); system("cls");
+            } else {
+                showMessage(">> LOGIN FAILED. Returning to main menu.");
+                system("pause"); system("cls");
+                continue;
             }
         } else if (choice == '2') {
             while (true) {
@@ -99,14 +89,13 @@ int main() {
                 if (newUser.validateNewUser(db)) {
                     if (verifyOTPAndRegister(newUser, db, email, username)) {
                         showMessage(">>> ACCOUNT CREATED SUCCESSFULLY <<<");
-                        system("pause");
-                        system("cls");
+                        cout << "Your account number is: " << newUser.getAccountNumber() << endl;
+                        system("pause"); system("cls");
                         break;
                     }
                 } else {
                     showMessage("Invalid input or username already exists.");
-                    system("pause");
-                    system("cls");
+                    system("pause"); system("cls");
                 }
             }
         } else if (choice == '3') {
@@ -118,8 +107,7 @@ int main() {
                     break;
                 } else {
                     showMessage("WRONG ADMIN PASSWORD.");
-                    system("pause");
-                    system("cls");
+                    system("pause"); system("cls");
                 }
             }
 
@@ -131,93 +119,90 @@ int main() {
             if (newUser.validateNewUser(db)) {
                 if (verifyOTPAndRegister(newUser, db, email, username)) {
                     showMessage("Manager created! Auto password: " + autoPassword);
-                    system("pause");
-                    system("cls");
+                    system("pause"); system("cls");
                 }
             } else {
                 showMessage("Invalid input or username already exists.");
-                system("pause");
-                system("cls");
+                system("pause"); system("cls");
             }
         }
 
         while (!currentUsername.empty()) {
+            User temp("", "", false);
+            string userEmail = temp.getUserEmail(db, currentUsername);
+            string accNum = db.getAccountNumber(currentUsername);
+
+            cout << "\033[1;36m═══════════════════════════════════════════════════════════\033[0m\n";
+            cout << "\033[1;36m   🧾 ACCOUNT INFORMATION\033[0m\n";
+            cout << "   \033[1;33m👤 Username:    \033[0;97m" << currentUsername << "\033[0m\n";
+            cout << "   \033[1;33m📧 Email:       \033[0;97m" << userEmail << "\033[0m\n";
+            cout << "   \033[1;33m💳 Account No.: \033[0;97m" << accNum << "\033[0m\n";
+            cout << "\033[1;36m═══════════════════════════════════════════════════════════\033[0m\n\n";
+
             showTransactionMenu();
             char transactionChoice = getMenuChoice();
             system("cls");
 
             if (transactionChoice == '1') {
-                // CHANGE PASSWORD
                 showChanginPassScreen();
                 while (true) {
                     string currentPassword = getInput("Enter current password: ");
                     User tempUser("", "", false);
-
                     if (tempUser.loginFromDB(db, currentUsername, currentPassword)) {
-                        string userEmail = tempUser.getUserEmail(db, currentUsername);
-                        if (userEmail.empty()) {
-                            showMessage("Email not found for this account. Cannot send OTP.");
-                            system("pause");
-                            system("cls");
-                            continue;
+                        string email = tempUser.getUserEmail(db, currentUsername);
+                        string otp = createOTP(email);
+                        string input;
+                        cout << "Enter OTP: "; getline(cin, input);
+                        if (input != otp) {
+                            showMessage("Incorrect OTP."); continue;
                         }
-
-                        string otp = createOTP(userEmail);
-                        if (otp.empty()) {
-                            cerr << "Unable to generate or send OTP." << endl;
-                            continue;
-                        }
-
-                        while (true) {
-                            string user_input;
-                            cout << "Enter the OTP you received: ";
-                            getline(cin, user_input);
-                            if (user_input == otp) {
-                                cout << "Verification successful!" << endl;
-                                break;
-                            } else {
-                                system("cls");
-                                cout << "Incorrect OTP. Please try again." << endl;
-                            }
-                        }
-
-                        string newpassword = getInput("Enter new password: ");
-                        User user(currentUsername, newpassword, false);
-                        if (user.changePassword(db, newpassword)) {
+                        string newpass = getInput("Enter new password: ");
+                        User user(currentUsername, newpass, false);
+                        if (user.changePassword(db, newpass)) {
                             showMessage(">> PASSWORD CHANGED SUCCESSFULLY <<");
-                            system("pause");
-                            system("cls");
                             break;
                         } else {
                             showMessage("Failed to change password.");
-                            system("pause");
-                            system("cls");
                         }
                     } else {
                         showMessage("Wrong password.");
-                        system("pause");
-                        system("cls");
                     }
+                    system("pause"); system("cls");
                 }
             } else if (transactionChoice == '2') {
-                // TRANSFER MONEY
                 showMessage(">> TRANSFER MONEY <<");
-                string receiver = getInput("Enter recipient's username: ");
+                string receiverAcc = getInput("Enter recipient's account number: ");
+                string receiver = db.getUsernameByAccount(receiverAcc);
+                if (receiver.empty()) {
+                    showMessage(">> Invalid account number <<");
+                    system("pause"); system("cls"); continue;
+                }
+                string senderEmail = temp.getUserEmail(db, currentUsername);
+                string otp = createOTP(senderEmail);
+                string inputOtp;
+                cout << "Enter OTP to confirm transfer: "; getline(cin, inputOtp);
+                if (inputOtp != otp) {
+                    showMessage("Incorrect OTP. Transfer cancelled.");
+                    system("pause"); system("cls"); continue;
+                }
                 double amount = stod(getInput("Enter amount to transfer: "));
-
                 if (db.transferMoney(currentUsername, receiver, amount)) {
-                    showMessage(">> TRANSFER SUCCESSFUL <<");
+                    cout << "\033[1;32m";
+                    cout << "╔════════════════════════════════════════════╗\n";
+                    cout << "║           💸 TRANSFER SUCCESSFUL!         ║\n";
+                    cout << "╠════════════════════════════════════════════╣\n";
+                    cout << "║ 🔁 From   : " << setw(30) << left << currentUsername << "║\n";
+                    cout << "║ 🎯 To     : " << setw(30) << left << receiver << "║\n";
+                    cout << "║ 💵 Amount : " << setw(22) << left << (to_string((int)amount) + " VND") << "║\n";
+                    cout << "╚════════════════════════════════════════════╝\n";
+                    cout << "\033[0m";
                 } else {
                     showMessage(">> TRANSFER FAILED <<");
                 }
-
-                system("pause");
-                system("cls");
+                system("pause"); system("cls");
             } else if (transactionChoice == '3') {
-                // VIEW BALANCE
                 double balance = db.getBalance(currentUsername);
                 string formatted = formatCurrency(balance);
-
                 printHeader("ACCOUNT BALANCE");
                 cout << "\033[1;32m";
                 cout << "\n   Your current balance is:\n\n";
@@ -225,28 +210,24 @@ int main() {
                 cout << "   ║     " << setw(20) << right << formatted << "     ║\n";
                 cout << "   ╚═══════════════════════════════════════╝\n";
                 cout << "\033[0m";
-                system("pause");
-                system("cls");
-            } 
-            else if (transactionChoice == '4'){
+                system("pause"); system("cls");
+            } else if (transactionChoice == '4') {
                 auto history = db.getTransactionHistory(currentUsername);
-                std::cout << "=== Lịch sử giao dịch của " << currentUsername << " ===\n";
-                std::cout << "Thời gian          | Loại giao dịch | Số tiền   | Đối tác\n";
-                std::cout << "----------------------------------------------------------\n";
+                cout << "=== Lịch sử giao dịch của " << currentUsername << " ===\n";
+                cout << "Thời gian          | Loại giao dịch | Số tiền   | Đối tác\n";
+                cout << "----------------------------------------------------------\n";
                 for (const auto& [datetime, type, amount, partner] : history) {
-                std::cout << datetime << " | " << type << " | " << amount << " VND | " << partner << '\n';
+                    cout << datetime << " | " << type << " | " << amount << " VND | " << partner << '\n';
                 }
-                system("pause");
-                system("cls");
-            }else if (transactionChoice == '5') {
-                // LOGOUT
+                system("pause"); system("cls");
+            } else if (transactionChoice == '5') {
                 currentUsername = "";
                 showMessage(">> LOGGED OUT <<");
-                system("pause");
-                system("cls");
+                system("pause"); system("cls");
                 break;
             }
         }
     }
+
     return 0;
 }

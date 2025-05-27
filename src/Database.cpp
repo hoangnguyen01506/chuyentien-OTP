@@ -54,15 +54,16 @@ bool Database::createWalletForUser(const std::string& username) {
 }
 
 bool Database::createUserTable() {
-    string sql = "CREATE TABLE IF NOT EXISTS USERS("
-                 "ID INTEGER PRIMARY KEY AUTOINCREMENT, "
-                 "FULLNAME TEXT NOT NULL, "
-                 "USERNAME TEXT NOT NULL UNIQUE, "
-                 "PASSWORD TEXT NOT NULL, "
-                 "EMAIL TEXT, "
-                 "IS_AUTO INTEGER NOT NULL);";
+    std::string sql = "CREATE TABLE IF NOT EXISTS USERS ("
+                      "USERNAME TEXT PRIMARY KEY,"
+                      "PASSWORD TEXT NOT NULL,"
+                      "IS_MANAGER INTEGER NOT NULL,"
+                      "EMAIL TEXT,"
+                      "NAME TEXT,"
+                      "ACCOUNT_NUMBER TEXT);";
     return execute(sql);
 }
+
 
 bool Database::createViTienTable() {
     string sql = R"(CREATE TABLE IF NOT EXISTS ViTien (
@@ -243,20 +244,26 @@ bool Database::userExists(const string& username) {
     return exists;
 }
 
-bool Database::insertUser(const string& username, const string& hashedPassword, bool isAuto, const string& email, const string& fullname) {
-    string sql = "INSERT INTO USERS (FULLNAME, USERNAME, PASSWORD, IS_AUTO, EMAIL) VALUES (?, ?, ?, ?, ?);";
+bool Database::insertUser(const std::string& username,
+                          const std::string& hashedPassword,
+                          bool isAuto,
+                          const std::string& email,
+                          const std::string& name,
+                          const std::string& accountNumber) {
+    std::string sql = "INSERT INTO USERS (USERNAME, PASSWORD, IS_MANAGER, EMAIL, NAME, ACCOUNT_NUMBER) VALUES (?, ?, ?, ?, ?, ?);";
     sqlite3_stmt* stmt;
 
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "SQLite prepare error: " << sqlite3_errmsg(db) << endl;
+        std::cerr << "Failed to prepare insertUser statement: " << sqlite3_errmsg(db) << std::endl;
         return false;
     }
 
-    sqlite3_bind_text(stmt, 1, fullname.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, hashedPassword.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 4, isAuto ? 1 : 0);
-    sqlite3_bind_text(stmt, 5, email.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, hashedPassword.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_int(stmt, 3, isAuto ? 1 : 0);
+    sqlite3_bind_text(stmt, 4, email.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 5, name.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 6, accountNumber.c_str(), -1, SQLITE_STATIC);
 
     bool success = (sqlite3_step(stmt) == SQLITE_DONE);
     sqlite3_finalize(stmt);
@@ -264,7 +271,7 @@ bool Database::insertUser(const string& username, const string& hashedPassword, 
 }
 
 bool Database::validateUser(const string& username, const string& hashedPassword, int& isAuto) {
-    string sql = "SELECT IS_AUTO FROM USERS WHERE USERNAME = ? AND PASSWORD = ?;";
+    string sql = "SELECT IS_MANAGER FROM USERS WHERE USERNAME = ? AND PASSWORD = ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
@@ -279,7 +286,7 @@ bool Database::validateUser(const string& username, const string& hashedPassword
 }
 
 bool Database::updatePassword(const string& username, const string& newHashedPassword) {
-    string sql = "UPDATE USERS SET PASSWORD = ?, IS_AUTO = 0 WHERE USERNAME = ?;";
+    string sql = "UPDATE USERS SET PASSWORD = ?, IS_MANAGER = 0 WHERE USERNAME = ?;";
     sqlite3_stmt* stmt;
     if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) return false;
     sqlite3_bind_text(stmt, 1, newHashedPassword.c_str(), -1, SQLITE_STATIC);
@@ -302,6 +309,37 @@ bool Database::addTransaction(const string& username, const string& type, double
 
     return execute(sql);
 }
+string Database::getAccountNumber(const string& username) {
+    string sql = "SELECT ACCOUNT_NUMBER FROM USERS WHERE USERNAME = ?;";
+    sqlite3_stmt* stmt;
+    string result;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, username.c_str(), -1, SQLITE_STATIC);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            result = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        }
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+string Database::getUsernameByAccount(const string& accountNumber) {
+    string sql = "SELECT USERNAME FROM USERS WHERE ACCOUNT_NUMBER = ?;";
+    sqlite3_stmt* stmt;
+    string result;
+
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) == SQLITE_OK) {
+        sqlite3_bind_text(stmt, 1, accountNumber.c_str(), -1, SQLITE_STATIC);
+        if (sqlite3_step(stmt) == SQLITE_ROW) {
+            result = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        }
+        sqlite3_finalize(stmt);
+    }
+    return result;
+}
+
+
 
 vector<tuple<string, string, double, string>> Database::getTransactionHistory(const string& username) {
     vector<tuple<string, string, double, string>> history;

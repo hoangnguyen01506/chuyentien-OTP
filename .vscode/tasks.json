@@ -1,44 +1,47 @@
 {
-    "version": "2.0.0",
-    "tasks": [
-        {
-            "type": "cppbuild",
-            "label": "C/C++: g++.exe build active file",
-            "command": "C:/mingw64/bin/g++.exe",
-            "args": [
-                "-fdiagnostics-color=always",
-                "-g",
-                "-std=c++17",
-                "-I${workspaceFolder}/include",
-                "-I${workspaceFolder}/otp",
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "cppbuild",
+      "label": "Build Project with MSYS2 + lib_curl",
+      "command": "C:/msys64/ucrt64/bin/g++.exe",
+      "args": [
+        "-fdiagnostics-color=always",
+        "-g",
+        "-std=c++17",
 
-                 "-I", "${workspaceFolder}/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include",
+        // Include directories
+        "-I", "${workspaceFolder}/include",
+        "-I", "${workspaceFolder}/otp",
+        "-I", "${workspaceFolder}/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/include",
 
-                "${workspaceFolder}/src/main.cpp",
-                "${workspaceFolder}/src/user.cpp",
-                "${workspaceFolder}/src/ui.cpp",
-                "${workspaceFolder}/src/Database.cpp",
-                "${workspaceFolder}/otp/otp.cpp",
+        // Source files
+        "${workspaceFolder}/src/main.cpp",
+        "${workspaceFolder}/src/user.cpp",
+        "${workspaceFolder}/src/ui.cpp",
+        "${workspaceFolder}/src/Database.cpp",
+        "${workspaceFolder}/otp/otp.cpp",
 
-                "-L", "${workspaceFolder}/sql",
-                "-L", "${workspaceFolder}/lib_curl",   
+        // Library path and libraries
+        "-L", "${workspaceFolder}/curl-8.13.0_3-win64-mingw/curl-8.13.0_3-win64-mingw/lib",
+        "-lcurl",
+        "-lws2_32",
+        "-lssl",
+        "-lcrypto",
+        "-lz",
+        "-lsqlite3",
 
-                "-lsqlite3",
-                "-lcurl",
-                
-                "-o", "${workspaceFolder}/app"
-            ],
-            "options": {
-                "cwd": "${workspaceFolder}"
-            },
-            "problemMatcher": [
-                "$gcc"
-            ],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "detail": "Task to build the main project with OTP and libcurl support"
-        }
-    ]
+        // Output
+        "-o", "${workspaceFolder}/app.exe"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": ["$gcc"]
+    }
+  ]
 }
