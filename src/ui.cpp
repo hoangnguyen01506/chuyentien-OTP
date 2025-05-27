@@ -1,62 +1,3 @@
-// #include "../include/ui.h"
-// #include <iostream>
-// #include <conio.h>
-
-// using namespace std;
-
-// void showMenu() {
-//     cout << "========================\n";
-//     cout << "TRANSACTION SYSTEM\n";
-//     cout << "1 LOGIN\n";
-//     cout << "2 REGISTER\n";
-//     cout << "3 REGISTER FOR MANAGER\n";
-//     cout << "PRESS 1/2/3\n";
-//     cout << "========================\n";
-// }
-
-// void showTransactionMenu() {
-//     cout << "========================\n";
-//     cout << "TRANSACTION SYSTEM\n";
-//     cout << "1 CHANGE PASSWORD\n";
-//     cout << "2. Chuyển tiền" << endl;
-//     cout << "...\n";
-//     cout << "PRESS 1/...\n";
-//     cout << "========================\n";
-// }
-
-// char getMenuChoice() {
-//     return _getch();
-// }
-
-// void showRegisterScreen() {
-//     cout << ">> REGISTER SYSTEM <<\n";
-// }
-
-// void showLoginScreen() {
-//     cout << ">> LOGIN SYSTEM <<\n";
-// }
-
-// void showRegisterScreenForMnger() {
-// 	cout << ">> REGISTER SYSTEM FOR MANAGER <<\n";
-// }
-// string getInput(const string& prompt) {
-//     cout << prompt;
-//     string input;
-//     getline(cin, input);
-//     return input;
-// }
-
-// void showMessage(const string& message) {
-//     cout << message << "\n";
-// }
-
-// void showChangePasswordScreen() {
-// 	cout << ">> CHANGE YOUR INFORMATION <<\n";
-// }
-
-// void showChanginPassScreen() {
-//     cout << ">> CHANGING PASSWORD <<\n";
-// }
 
 #include "../include/ui.h"
 #include <bits/stdc++.h>
@@ -138,7 +79,7 @@ void showChanginPassScreen() {
     printHeader("CHANGE PASSWORD");
 }
 
-void showMngerMenu() {
+void showManagerMenu() {
     printHeader("MANAGER MENU");
     cout << "\033[1;33m";
     cout << "[1] Create User Account\n";
@@ -170,6 +111,17 @@ void printHeader(const string& title) {
     for (int i = 0; i < totalWidth; ++i) cout << "═";
     cout << "╝\n\033[0m";
 }
+
+void showChangeInfoMenu() {
+    printHeader("CHANGE INFORMATION MENU");
+    cout << "\033[1;33m";
+    cout << "[1] Change Password\n";
+    cout << "[2] Change Name\n";
+    cout << "Select [1] / [2]: ";
+    cout << "\033[0m";
+}
+
+
 
 int visualLength(const string& s) {
     int count = 0;

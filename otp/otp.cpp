@@ -34,7 +34,7 @@ std::string createOTP(const std::string& to) {
     for (int i = 0; i < 6; ++i) {
         otp += std::to_string(rand() % 10);
     }
-    std::cout << "OTP được tạo: " << otp << std::endl;
+    
 
     // Tạo payload cho email
     std::string payload =

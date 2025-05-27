@@ -64,6 +64,13 @@ bool User::loginFromDB(Database& db, const string& uname, const string& pwd) {
     return false;
 }
 
+// bool User::loginFromDB(Database& db, const string& uname, const string& pwd) {
+//     string hashed = hashPassword(pwd);
+//     int dummy = -1; // giữ cho đúng tham số, dù không dùng IS_MANANGER
+//     return db.validateUser(uname, hashed, dummy);
+// }
+    
+
 bool User::changePassword(Database& db, const string& newPassword) {
     if (newPassword.find(" ") != string::npos) return false;
 
@@ -98,4 +105,27 @@ string generateRandomAccountNumber() {
         accNum += to_string(rand() % 10);
     }
     return accNum;
+}
+
+bool User::isValidGmail(const string& email) {
+    const string gmailSuffix = "@gmail.com";
+
+    if (email.empty()) {
+        cout << "Invalid input: email is empty.\n";
+        return false;
+    }
+
+    if (email.length() < gmailSuffix.length() ||
+        email.compare(email.length() - gmailSuffix.length(), gmailSuffix.length(), gmailSuffix) != 0) {
+        cout << "Invalid input: email must end with '@gmail.com'.\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool User::changeName(Database& db, const string& newName) {
+    if (newName.empty()) return false;
+
+    return db.updateName(username, newName);
 }

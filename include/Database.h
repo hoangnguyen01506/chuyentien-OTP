@@ -52,6 +52,8 @@ public:
     // Transaction history
     bool addTransaction(const std::string& username, const std::string& type, double amount, const std::string& partner);
     std::vector<std::tuple<std::string, std::string, double, std::string>> getTransactionHistory(const std::string& username);
+    bool updateIsAuto(const std::string& username, int isAuto);
+    bool updateName(const std::string& username, const std::string& newName);
 };
 
 #endif // DATABASE_H

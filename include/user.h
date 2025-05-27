@@ -34,6 +34,9 @@ public:
     bool validateNewUser(Database& db);
     bool loginFromDB(Database& db, const std::string& uname, const std::string& pwd);
     bool changePassword(Database& db, const std::string& newPassword);
+    bool changeName(Database& db, const std::string& newName);
+
+    static bool isValidGmail(const std::string& email);
 };
 
 // Hàm sinh account number ngẫu nhiên 10 chữ số

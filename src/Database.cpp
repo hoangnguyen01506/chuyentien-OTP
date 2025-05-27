@@ -358,3 +358,85 @@ vector<tuple<string, string, double, string>> Database::getTransactionHistory(co
     sqlite3_finalize(stmt);
     return history;
 }
+
+bool Database::updateIsAuto(const string& username, int isManager) {
+    string sql = "UPDATE USERS SET IS_MANAGER = ? WHERE USERNAME = ?;";
+    sqlite3_stmt* stmt;
+
+    // Chuẩn bị câu lệnh SQL
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Prepare failed: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    // Gán giá trị vào câu lệnh
+    sqlite3_bind_int(stmt, 1, isManager);
+    sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
+
+    // Thực thi lệnh
+    int result = sqlite3_step(stmt);
+    int changes = sqlite3_changes(db); // <- số dòng thực sự bị thay đổi
+
+    sqlite3_finalize(stmt);
+
+    // Kiểm tra kết quả
+    if (result != SQLITE_DONE) {
+        cerr << "Step failed: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    if (changes == 0) {
+        cerr << "No rows were updated. Có thể USERNAME không tồn tại hoặc IS_MANAGER đã là giá trị này rồi." << endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool Database::updateName(const string& username, const string& newName) {
+    // Kiểm tra đầu vào
+    if (username.empty() || newName.empty()) {
+        cerr << "Lỗi: Username hoặc newName rỗng" << endl;
+        return false;
+    }
+
+    // Kiểm tra username tồn tại
+    if (!userExists(username)) {
+        cerr << "Lỗi: Username '" << username << "' không tồn tại trong cơ sở dữ liệu" << endl;
+        return false;
+    }
+
+    string sql = "UPDATE USERS SET NAME = ? WHERE USERNAME = ?;";
+    sqlite3_stmt* stmt;
+
+    // Chuẩn bị câu lệnh SQL
+    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
+        cerr << "Chuẩn bị thất bại: " << sqlite3_errmsg(db) << endl;
+        return false;
+    }
+
+    // Gán giá trị
+    sqlite3_bind_text(stmt, 1, newName.c_str(), -1, SQLITE_STATIC);
+    sqlite3_bind_text(stmt, 2, username.c_str(), -1, SQLITE_STATIC);
+
+    // Thực thi câu lệnh
+    int result = sqlite3_step(stmt);
+    int changes = sqlite3_changes(db); // Kiểm tra số hàng bị ảnh hưởng
+
+    if (result != SQLITE_DONE) {
+        cerr << "Thực thi thất bại: " << sqlite3_errmsg(db) << endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    if (changes == 0) {
+        cerr << "Không có hàng nào được cập nhật: Username '" << username << "' không tồn tại hoặc FULLNAME đã là giá trị này" << endl;
+        sqlite3_finalize(stmt);
+        return false;
+    }
+
+    sqlite3_finalize(stmt);
+
+
+    return true;
+}

@@ -12,6 +12,8 @@ void showRegisterScreenForMnger();
 void showChangePasswordScreen();
 void showTransactionMenu();
 void showChanginPassScreen();
+void showChangeInfoMenu();
+void showManagerMenu();
 void printHeader(const std::string& title);
 std::string formatCurrency(double amount);
 
