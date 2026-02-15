@@ -411,7 +411,35 @@ int main() {
                     showMessage("Incorrect OTP. Transfer cancelled.");
                     system("pause"); system("cls"); continue;
                 }
-                double amount = stod(getInput("Enter amount to transfer: "));
+                
+                string amountStr = getInput("Enter amount to transfer: ");
+                double amount;
+                try{
+                    amount = stod(amountStr);
+                    const double MAX_TRANSFER = 1e9; // 1 tỷ VND
+                    if(amount>MAX_TRANSFER){
+                        showMessage("Transfer amount exceeds the 1,000,000,000 VND limit.");
+                        system("pause"); system("cls");
+                        continue;
+                    }
+                     double currentBalance = db.getBalance(currentUsername);
+                      if (amount <= 0) {
+                        showMessage("Amount must be greater than zero.");
+                        system("pause"); system("cls");
+                        continue;
+                    }
+                    if (amount > currentBalance) {
+                    showMessage("Insufficient balance.");
+                    system("pause"); system("cls");
+                    continue;
+                    }
+                }
+                catch (const std::exception&) {
+                showMessage("Invalid amount entered.");
+                system("pause"); system("cls");
+                continue;
+                }
+
                 if (db.transferMoney(currentUsername, receiver, amount)) {
                     cout << "\033[1;32m";
                     cout << "╔════════════════════════════════════════════╗\n";
